@@ -18,11 +18,11 @@ export default function ModalComponent({
 }: Props) {
   return (
     <Modal transparent={true} visible={showModal}>
-      <View style={{ backgroundColor: "rgba(0, 0, 0, 0.5)", flex: 1 }}>
+      <View style={styles.containerModal}>
         <View style={styles.modal}>
           <View style={styles.wrapTitleButtonReset}>
             <Text style={styles.titleModal}>
-              {score > allQuestion.length / 2 ? "Congratulations!" : "Oops!"}
+              {score > allQuestion.length / 2 ? "Felicitaciones!" : "Oops!"}
             </Text>
             <Text style={[styles.titleModal, { fontSize: Sizes.small }]}>
               {score} / {allQuestion.length}
@@ -32,7 +32,7 @@ export default function ModalComponent({
               style={styles.containerButton}
               onPress={resetQuiz}
             >
-              <Text style={styles.titleButton}>Reset</Text>
+              <Text style={styles.titleButton}>Reiniciar</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -48,12 +48,15 @@ const styles = StyleSheet.create({
     width: "80%",
     flex: 1,
   },
+  containerModal: {
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    flex: 1,
+  },
   wrapTitleButtonReset: {
     backgroundColor: Color.secondary,
     borderRadius: 10,
-    paddingVertical: 10,
+    paddingVertical: 25,
   },
-
   titleModal: {
     color: Color.primary,
     fontFamily: Font.bold,

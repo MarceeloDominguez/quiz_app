@@ -22,7 +22,7 @@ export default function NextButton({
         onPress={handleNext}
         disabled={currentOptionSelected !== "" ? false : true}
       >
-        <Text style={styles.titleButtonNext}>Next</Text>
+        <Text style={styles.titleButtonNext}>Siguiente</Text>
       </TouchableOpacity>
     </View>
   );

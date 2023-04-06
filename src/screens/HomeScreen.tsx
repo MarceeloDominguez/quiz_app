@@ -1,5 +1,12 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, StatusBar, SafeAreaView, ScrollView } from "react-native";
+import {
+  StyleSheet,
+  StatusBar,
+  SafeAreaView,
+  ScrollView,
+  View,
+  Animated,
+} from "react-native";
 import { Color } from "../constants/theme";
 import Question from "../components/Question";
 import { useFonts } from "expo-font";
@@ -19,6 +26,14 @@ export default function HomeScreen() {
   const [showNextButton, setShowNextButton] = useState(false);
   const [score, setScore] = useState(0);
 
+  //progress bar
+  const [progress, setProgress] = useState(new Animated.Value(0));
+  const progressAnimated = progress.interpolate({
+    inputRange: [0, allQuestion.length],
+    outputRange: ["0%", "100%"],
+  });
+
+  //validar si la respuesta es correcta o no
   const validateAnswer = (selectedAnswer: string) => {
     let correct_option = allQuestion[currentQuestionIndex]["correct_option"];
     setCorrectOption(correct_option);
@@ -32,6 +47,7 @@ export default function HomeScreen() {
     setShowNextButton(true);
   };
 
+  //pasar a la siguiente pregunta
   const handleNext = () => {
     if (currentQuestionIndex === allQuestion.length - 1) {
       setShowModal(true);
@@ -42,8 +58,15 @@ export default function HomeScreen() {
       setCorrectOption("");
       setIsOptionsDisabled(false);
     }
+
+    Animated.timing(progress, {
+      toValue: currentQuestionIndex + 1,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
   };
 
+  //reiniciar el juego
   const resetQuiz = () => {
     setShowModal(false);
     setCurrentQuestionIndex(0);
@@ -52,8 +75,15 @@ export default function HomeScreen() {
     setIsOptionsDisabled(false);
     setShowNextButton(false);
     setScore(0);
+
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
   };
 
+  //cargar tipo de fuente
   const [fontsLoaded] = useFonts({
     Bold: require("../../assets/fonts/Rubik-Bold.ttf"),
     Regular: require("../../assets/fonts/Rubik-Regular.ttf"),
@@ -76,6 +106,11 @@ export default function HomeScreen() {
         contentContainerStyle={{ flexGrow: 1 }}
         showsVerticalScrollIndicator={false}
       >
+        <View style={styles.containerProgressBar}>
+          <Animated.View
+            style={[styles.progressBar, { width: progressAnimated }]}
+          />
+        </View>
         <Question
           currentQuestionIndex={currentQuestionIndex}
           allQuestion={allQuestion}
@@ -110,5 +145,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Color.primary,
     paddingHorizontal: 20,
+  },
+  containerProgressBar: {
+    width: "100%",
+    height: 15,
+    borderRadius: 4,
+    marginTop: 20,
+    marginBottom: 15,
+    backgroundColor: "#242931",
+  },
+  progressBar: {
+    height: 15,
+    borderRadius: 4,
+    backgroundColor: "#FF6000",
   },
 });
