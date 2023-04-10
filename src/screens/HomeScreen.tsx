@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   StatusBar,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   View,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { Color } from "../constants/theme";
 import Question from "../components/Question";
@@ -15,6 +16,7 @@ import { data } from "../data/data";
 import AnswerOptions from "../components/AnswerOptions";
 import NextButton from "../components/NextButton";
 import ModalComponent from "../components/ModalComponent";
+import SelectCategory from "../components/SelectCategory";
 
 export default function HomeScreen() {
   const allQuestion = data;
@@ -25,17 +27,44 @@ export default function HomeScreen() {
   const [showModal, setShowModal] = useState(false);
   const [showNextButton, setShowNextButton] = useState(false);
   const [score, setScore] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  //seleccionar categoria
+  const [selectCategory, setSelectCategory] = useState("Geografía");
+
+  const handleCategory = (category: string) => {
+    setSelectCategory(category);
+    setScore(0);
+    setCurrentQuestionIndex(0);
+    setCurrentOptionSelected("");
+    setCorrectOption("");
+    setIsOptionsDisabled(false);
+    setShowNextButton(false);
+    setLoading(true);
+
+    Animated.timing(progress, {
+      toValue: 0,
+      duration: 1000,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  //filtrar por categoria
+  const filterQuestionByCategory = allQuestion.filter(
+    (item) => item.category === selectCategory
+  );
 
   //progress bar
   const [progress, setProgress] = useState(new Animated.Value(0));
   const progressAnimated = progress.interpolate({
-    inputRange: [0, allQuestion.length],
+    inputRange: [0, filterQuestionByCategory.length],
     outputRange: ["0%", "100%"],
   });
 
   //validar si la respuesta es correcta o no
   const validateAnswer = (selectedAnswer: string) => {
-    let correct_option = allQuestion[currentQuestionIndex]["correct_option"];
+    let correct_option =
+      filterQuestionByCategory[currentQuestionIndex]["correct_option"];
     setCorrectOption(correct_option);
     setCurrentOptionSelected(selectedAnswer);
     setIsOptionsDisabled(true);
@@ -49,7 +78,7 @@ export default function HomeScreen() {
 
   //pasar a la siguiente pregunta
   const handleNext = () => {
-    if (currentQuestionIndex === allQuestion.length - 1) {
+    if (currentQuestionIndex === filterQuestionByCategory.length - 1) {
       setShowModal(true);
       setShowNextButton(false);
     } else {
@@ -83,6 +112,11 @@ export default function HomeScreen() {
     }).start();
   };
 
+  //quitar loading
+  useEffect(() => {
+    setTimeout(() => setLoading(false), 300);
+  }, [selectCategory]);
+
   //cargar tipo de fuente
   const [fontsLoaded] = useFonts({
     Bold: require("../../assets/fonts/Rubik-Bold.ttf"),
@@ -111,18 +145,30 @@ export default function HomeScreen() {
             style={[styles.progressBar, { width: progressAnimated }]}
           />
         </View>
-        <Question
-          currentQuestionIndex={currentQuestionIndex}
-          allQuestion={allQuestion}
+        <SelectCategory
+          handleCategory={handleCategory}
+          selectCategory={selectCategory}
         />
-        <AnswerOptions
-          currentQuestionIndex={currentQuestionIndex}
-          allQuestion={allQuestion}
-          validateAnswer={validateAnswer}
-          currentOptionSelected={currentOptionSelected}
-          correctOption={correctOption}
-          isOptionsDisabled={isOptionsDisabled}
-        />
+        {loading ? (
+          <View style={styles.containerLoading}>
+            <ActivityIndicator size={20} color={Color.secondary} />
+          </View>
+        ) : (
+          <>
+            <Question
+              currentQuestionIndex={currentQuestionIndex}
+              allQuestion={filterQuestionByCategory}
+            />
+            <AnswerOptions
+              currentQuestionIndex={currentQuestionIndex}
+              allQuestion={filterQuestionByCategory}
+              validateAnswer={validateAnswer}
+              currentOptionSelected={currentOptionSelected}
+              correctOption={correctOption}
+              isOptionsDisabled={isOptionsDisabled}
+            />
+          </>
+        )}
         {showNextButton && (
           <NextButton
             handleNext={handleNext}
@@ -134,7 +180,7 @@ export default function HomeScreen() {
         showModal={showModal}
         resetQuiz={resetQuiz}
         score={score}
-        allQuestion={allQuestion}
+        allQuestion={filterQuestionByCategory}
       />
     </SafeAreaView>
   );
@@ -158,5 +204,10 @@ const styles = StyleSheet.create({
     height: 15,
     borderRadius: 4,
     backgroundColor: "#FF6000",
+  },
+  containerLoading: {
+    height: 250,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
